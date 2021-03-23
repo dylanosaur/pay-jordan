@@ -1,5 +1,4 @@
 from venmo_api import Client
-from venmo_api import UserApi
 import os
 import datetime
 import pandas as pd
@@ -17,23 +16,19 @@ data = []
 for item in transactions:
     datum = {}
     if item.target.username == jordan or item.actor.username == jordan:
+        datum['epoch'] = item.date_completed
         datum['date_completed'] = datetime.datetime.fromtimestamp(item.date_completed)
         datum['amount'] = item.amount
         datum['note'] = item.note
         data.append(datum)
 data.sort(key=lambda x: x['date_completed'], reverse=True)
 pd.DataFrame(data).to_csv('jordans-payments.csv', index=False)
-print(transactions)
 
-import pandas as pd
-import datetime
-data = pd.read_csv('jordans-payments.csv').to_dict('records')
+last_payment = datetime.datetime.fromtimestamp(data[0]['epoch'])
+delta_from_last_payment = datetime.datetime.now() - last_payment
+print(f'{delta_from_last_payment.seconds/3600/24} days since last payment')
 
-earlier = datetime.datetime.now()
-today = datetime.datetime.now()
-delta_from_last_payment = today - earlier
-
-print(delta_from_last_payment)
-if delta_from_last_payment.days > 30:
-    pass
-    # venmo.payment.send_money(00.05, "computer go beep boop", '1994505100197888035')
+if delta_from_last_payment.seconds/3600/24 > 30:
+    now = datetime.datetime.now()
+    note = f'{now.year}-{now.month}-{now.day} phone payment'
+    venmo.payment.send_money(80.00, note, '1994505100197888035')
